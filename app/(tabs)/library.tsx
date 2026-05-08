@@ -1,17 +1,20 @@
 import React, { useState } from 'react';
 import { View, ScrollView, Pressable, Image, Dimensions } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Text } from '@/components/ui/text';
 import { Search, Plus, ListFilter, Grid2X2, ArrowUpDown, Pin } from 'lucide-react-native';
 import { useAuthStore } from '@/lib/context/auth-store';
 import { useUIStore } from '@/lib/context/ui-store';
 import Animated, { FadeInUp, FadeIn, Layout } from 'react-native-reanimated';
+import { ProfileIcon } from '@/components/profile-icon';
 
 const { width } = Dimensions.get('window');
 const FILTERS = ['Playlists', 'Artists', 'Albums'];
 
 export default function LibraryTab() {
   const { session } = useAuthStore();
-  const { openProfileDrawer, openCreatePlaylist } = useUIStore(); // Added openCreatePlaylist
+  const { openProfileDrawer, openCreatePlaylist } = useUIStore();
+  const insets = useSafeAreaInsets();
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
   const [isGridView, setIsGridView] = useState(true);
 
@@ -28,17 +31,14 @@ export default function LibraryTab() {
 
   return (
     <View className="flex-1 bg-background dark">
-      {/* Header */}
-      <View className="pt-14 px-4 pb-4">
-        <View className="flex-row items-center justify-between mb-6">
+      {/* Sticky Header */}
+      <View 
+        style={{ paddingTop: Math.max(insets.top, 16) }}
+        className="px-4 pb-4 z-50 bg-background/80 backdrop-blur-md"
+      >
+        <View className="flex-row items-center justify-between">
           <View className="flex-row items-center gap-3">
-            <Pressable onPress={openProfileDrawer} className="active:scale-95">
-              <View className="w-8 h-8 rounded-full bg-primary items-center justify-center">
-                <Text className="text-primary-foreground font-black text-xs">
-                  {session?.user?.email?.charAt(0).toUpperCase()}
-                </Text>
-              </View>
-            </Pressable>
+            <ProfileIcon size={34} />
             <Text className="text-foreground text-2xl font-black tracking-tighter">Your Library</Text>
           </View>
           <View className="flex-row items-center gap-5">
@@ -50,7 +50,7 @@ export default function LibraryTab() {
         </View>
 
         {/* Filter Chips */}
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-2">
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mt-4">
           <View className="flex-row gap-2">
             {FILTERS.map((filter) => (
               <Pressable
@@ -67,36 +67,38 @@ export default function LibraryTab() {
         </ScrollView>
       </View>
 
-      {/* Sort & Layout Toggle */}
-      <View className="flex-row items-center justify-between px-4 py-2 mb-2">
-        <Pressable className="flex-row items-center gap-2 active:opacity-60">
-          <ArrowUpDown size={14} color="white" className="text-foreground" />
-          <Text className="text-foreground font-bold text-[11px] uppercase tracking-widest">Recents</Text>
-        </Pressable>
-        <Pressable onPress={() => setIsGridView(!isGridView)} className="active:scale-95 p-1">
-          {isGridView ? <ListFilter size={20} color="white" className="text-foreground" /> : <Grid2X2 size={20} color="white" className="text-foreground" />}
-        </Pressable>
-      </View>
-
-      {/* Library Content */}
-      <ScrollView
-        className="flex-1 px-4"
-        contentContainerStyle={{ paddingBottom: 120 }}
+      <ScrollView 
+        className="flex-1" 
+        contentContainerStyle={{ paddingBottom: 160 }}
         showsVerticalScrollIndicator={false}
       >
-        <Animated.View
-          layout={Layout.springify()}
-          className={isGridView ? "flex-row flex-wrap justify-between" : "gap-4"}
-        >
-          {libraryItems.map((item, index) => (
-            <LibraryItem
-              key={item.id}
-              {...item}
-              isGrid={isGridView}
-              index={index}
-            />
-          ))}
-        </Animated.View>
+        {/* Sort & Layout Toggle */}
+        <View className="flex-row items-center justify-between px-4 py-2 mb-2">
+          <Pressable className="flex-row items-center gap-2 active:opacity-60">
+            <ArrowUpDown size={14} color="white" />
+            <Text className="text-foreground font-bold text-[11px] uppercase tracking-widest">Recents</Text>
+          </Pressable>
+          <Pressable onPress={() => setIsGridView(!isGridView)} className="active:scale-95 p-1">
+            {isGridView ? <ListFilter size={20} color="white" /> : <Grid2X2 size={20} color="white" />}
+          </Pressable>
+        </View>
+
+        {/* Library Content */}
+        <View className="px-4">
+          <Animated.View
+            layout={Layout.springify()}
+            className={isGridView ? "flex-row flex-wrap justify-between" : "gap-4"}
+          >
+            {libraryItems.map((item, index) => (
+              <LibraryItem
+                key={item.id}
+                {...item}
+                isGrid={isGridView}
+                index={index}
+              />
+            ))}
+          </Animated.View>
+        </View>
       </ScrollView>
     </View>
   );
@@ -117,14 +119,14 @@ function LibraryItem({ title, subtitle, image, type, pinned, isGrid, index }: an
           />
         </View>
         <View className={isGrid ? "px-1" : "flex-1"}>
-          <Text className="text-foreground font-bold text-sm" numberOfLines={1}>{title}</Text>
+          <Text className="text-white font-bold text-sm" numberOfLines={1}>{title}</Text>
           <View className="flex-row items-center gap-1.5 mt-0.5">
             {pinned && (
               <View className="rotate-45">
                 <Pin size={10} color="#1DB954" fill="#1DB954" />
               </View>
             )}
-            <Text className="text-muted-foreground text-xs font-medium" numberOfLines={1}>
+            <Text className="text-[#B3B3B3] text-xs font-medium" numberOfLines={1}>
               {pinned && "Pinned • "}{subtitle}
             </Text>
           </View>
