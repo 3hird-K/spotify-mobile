@@ -1,21 +1,23 @@
 import { Text } from '@/components/ui/text';
-import { View, ScrollView, Image, ActivityIndicator, Pressable, Platform } from 'react-native';
+import { View, ScrollView, Image, ActivityIndicator, Pressable, Platform, StyleSheet } from 'react-native';
 import * as React from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { supabase } from '@/lib/supabase';
-import { Music, Play, Heart, MoreVertical, Bell, Clock } from 'lucide-react-native';
+import { Play, Heart, Bell, Clock, Search, Menu, ListMusic, LogOut, ChevronRight } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '@/lib/context/auth-store';
 import { useUIStore } from '@/lib/context/ui-store';
-
 import { ProfileIcon } from '@/components/profile-icon';
+import { SearchOverlay } from '@/components/search-overlay';
 
 export default function HomeTab() {
-  const { initialized } = useAuthStore();
-  const { openProfileDrawer } = useUIStore();
-  const [loading, setLoading] = React.useState<boolean>(!initialized);
+  const { initialized, session, signOut } = useAuthStore();
+  const { openCreatePlaylist } = useUIStore();
   const insets = useSafeAreaInsets();
+  const [loading, setLoading] = React.useState<boolean>(!initialized);
   const [activeFilter, setActiveFilter] = React.useState('All');
+  const [showMenu, setShowMenu] = React.useState(false);
+  const [isSearchOpen, setIsSearchOpen] = React.useState(false);
   const router = useRouter();
 
   React.useEffect(() => {
@@ -26,7 +28,7 @@ export default function HomeTab() {
 
   if (loading) {
     return (
-      <View className="flex-1 items-center justify-center bg-background">
+      <View className="flex-1 items-center justify-center bg-black">
         <ActivityIndicator size="large" color="#1DB954" />
       </View>
     );
@@ -35,62 +37,89 @@ export default function HomeTab() {
   const FILTERS = ['All', 'Music', 'Podcasts'];
 
   const RECENT_ITEMS = [
-    { id: '1', title: 'Liked Songs', image: 'https://i.scdn.co/image/ab67706f0000feaf2479e0066b1a9e7011d14902' },
-    { id: '2', title: 'Coders Playlist', image: 'https://i.scdn.co/image/ab67706c0000bebb422998399587440409095697' },
-    { id: '3', title: 'Daily Mix 1', image: 'https://i.scdn.co/image/ab6761610000e5ebc361d36636735e5898d2489f' },
-    { id: '4', title: 'Discover Weekly', image: 'https://i.scdn.co/image/ab67706f0000bebb9f170f612ca430156d6d45f4' },
-    { id: '5', title: 'Deep Focus', image: 'https://i.scdn.co/image/ab67706f0000bebbd967e56ba23737ec3093ca53' },
-    { id: '6', title: 'This Is Hev Abi', image: 'https://i.scdn.co/image/ab6761610000e5eb8ae7f23342d0912189a87d0c' },
+    { id: '1', title: 'Liked Songs', image: 'https://i.scdn.co/image/ab67706f0000feaf2479e0066b1a9e7011d14902', color: '#5038A0' },
+    { id: '2', title: 'PHraps', image: 'https://i.scdn.co/image/ab67706c0000bebb9f170f612ca430156d6d45f4' },
+    { id: '3', title: 'K-Drama Ost', image: 'https://i.scdn.co/image/ab67616d0000b273b75411767355097722744883' },
+    { id: '4', title: "Coders' Playlist", image: 'https://i.scdn.co/image/ab67706c0000bebb422998399587440409095697' },
+  ];
+
+  const RECOMMENDED = [
+    { id: 'r1', title: 'Top Trending Spotify 2026 🤎 🟢 ~ Best Healin...', subtitle: 'JsVibes Music', image: 'https://i.ytimg.com/vi/D52_7nZ8S3Y/maxresdefault.jpg' },
+    { id: 'r2', title: 'Bruno Mars - Risk It All [Official Music Video]', subtitle: 'Bruno Mars', image: 'https://i.ytimg.com/vi/W7t0T6z7T7Y/maxresdefault.jpg' },
+  ];
+
+  const MADE_FOR_YOU = [
+    { id: 'm1', title: 'Justin Bieber - Baby ft....', subtitle: 'Mix featuring JustinBieberVEVO', image: 'https://i.scdn.co/image/ab67616d0000b273b75411767355097722744883' },
+    { id: 'm2', title: 'Unreleased (Mahirap n...', subtitle: 'Mix featuring Ex Battalion Music', image: 'https://i.ytimg.com/vi/f8Wn_h-mR1U/maxresdefault.jpg' },
+    { id: 'm3', title: 'Zae, Sica - I can be the...', subtitle: 'Mix featuring Zae', image: 'https://i.ytimg.com/vi/xHInL9m5yv4/maxresdefault.jpg' },
+    { id: 'm4', title: '방탄이가방에...', subtitle: 'Mix featuring BTS', image: 'https://i.ytimg.com/vi/D52_7nZ8S3Y/maxresdefault.jpg' },
   ];
 
   return (
-    <View className="flex-1 bg-background dark">
-      {/* Top Background Gradient Effect */}
-      <View className="absolute top-0 left-0 right-0 h-80 bg-emerald-950/20 opacity-30" />
+    <View className="flex-1 bg-black dark">
+      {/* Background Gradient */}
+      <View className="absolute top-0 left-0 right-0 h-64 bg-emerald-900/10" />
 
-      {/* Sticky Header */}
-      <View 
-        style={{ paddingTop: Math.max(insets.top, 16) }}
-        className="px-4 pb-4 z-50 bg-background/80 backdrop-blur-md"
-      >
+      {/* Header Section */}
+      <View style={{ paddingTop: insets.top + 10 }} className="px-4 pb-4 z-50">
         <View className="flex-row items-center justify-between">
-          <View className="flex-row items-center gap-3">
-            <ProfileIcon size={34} />
-            <View className="flex-row gap-2">
-              {FILTERS.map((f) => (
-                <Pressable
-                  key={f}
-                  onPress={() => setActiveFilter(f)}
-                  className={`px-4 py-1.5 rounded-full ${activeFilter === f ? 'bg-primary' : 'bg-secondary/60'}`}
-                >
-                  <Text className={`text-[13px] font-bold ${activeFilter === f ? 'text-black' : 'text-white'}`}>
-                    {f}
-                  </Text>
-                </Pressable>
-              ))}
-            </View>
+          {/* Profile Card */}
+          <View className="flex-1 mr-4 bg-[#121212] rounded-xl p-3 border border-white/5 flex-row items-center">
+             <ProfileIcon size={48} />
+             <View className="ml-3">
+               <Text className="text-white text-base font-black">Neil Dime</Text>
+               <Text className="text-primary text-[10px] font-black tracking-widest uppercase">Premium</Text>
+             </View>
           </View>
+          
+          {/* Header Icons */}
+          <View className="flex-row items-center gap-4">
+            <Pressable onPress={() => setIsSearchOpen(true)}>
+              <Search size={26} color="white" strokeWidth={2.5} />
+            </Pressable>
+            <Pressable onPress={() => setShowMenu(!showMenu)}>
+              <Menu size={28} color="white" strokeWidth={2.5} />
+            </Pressable>
+          </View>
+        </View>
+
+        {/* Filters */}
+        <View className="flex-row gap-2 mt-6">
+          {FILTERS.map((f) => (
+            <Pressable
+              key={f}
+              onPress={() => setActiveFilter(f)}
+              className={`px-5 py-2 rounded-full ${activeFilter === f ? 'bg-primary' : 'bg-[#282828]'}`}
+            >
+              <Text className={`text-sm font-bold ${activeFilter === f ? 'text-black' : 'text-white'}`}>
+                {f}
+              </Text>
+            </Pressable>
+          ))}
         </View>
       </View>
 
       <ScrollView
         className="flex-1"
-        contentContainerStyle={{
-          paddingBottom: 160
-        }}
+        contentContainerStyle={{ paddingBottom: 160 }}
         showsVerticalScrollIndicator={false}
       >
-
         {/* Recently Played Grid */}
-        <View className="px-4 mb-8">
-          <View className="flex-row flex-wrap justify-between gap-y-2">
+        <View className="px-4 mt-2 mb-8">
+          <View className="flex-row flex-wrap justify-between gap-y-2.5">
             {RECENT_ITEMS.map((item) => (
               <Pressable
                 key={item.id}
-                className="w-[48.5%] bg-card/60 flex-row items-center rounded-md overflow-hidden border border-border/5"
+                className="w-[48.5%] bg-[#121212] flex-row items-center rounded-lg overflow-hidden border border-white/5 h-[52px]"
               >
-                <Image source={{ uri: item.image }} className="w-14 h-14" />
-                <Text className="flex-1 text-[11px] font-bold text-foreground px-2" numberOfLines={2}>
+                {item.id === '1' ? (
+                  <View style={{ backgroundColor: item.color }} className="w-[52px] h-[52px] items-center justify-center">
+                    <Heart size={18} color="white" fill="white" />
+                  </View>
+                ) : (
+                  <Image source={{ uri: item.image }} className="w-[52px] h-[52px]" />
+                )}
+                <Text className="flex-1 text-[10px] font-black text-white px-2.5" numberOfLines={2}>
                   {item.title}
                 </Text>
               </Pressable>
@@ -98,50 +127,85 @@ export default function HomeTab() {
           </View>
         </View>
 
-        {/* Picked for You Section */}
+        {/* Recommended Section */}
         <View className="px-4 mb-8">
-          <Text className="text-xl font-bold text-foreground mb-4">Picked for you</Text>
-          <Pressable className="bg-card/40 rounded-3xl overflow-hidden border border-border/10 shadow-2xl">
-            <View className="relative">
-              <Image
-                source={{ uri: 'https://images.unsplash.com/photo-1459749411177-042180ce673c?w=600&h=400&fit=crop' }}
-                className="w-full h-56"
-              />
-              <View className="absolute inset-0 bg-black/20 justify-end p-4">
-                <View className="flex-row items-center justify-between">
-                  <View className="flex-1">
-                    <Text className="text-white text-lg font-black leading-tight shadow-md" numberOfLines={2}>
-                      CORTIS's shuffle show hit green green | K-Pop ON! RECORD
-                    </Text>
-                    <Text className="text-gray-300 text-xs mt-1">Video Podcast • 8 hours ago</Text>
-                  </View>
-                  <View className="w-10 h-10 rounded-full bg-white items-center justify-center shadow-lg">
-                    <Play color="black" size={20} fill="black" />
-                  </View>
+          <Text className="text-xl font-black text-white mb-5">Recommended for you</Text>
+          <View className="flex-row flex-wrap justify-between gap-y-6">
+            {RECOMMENDED.map((item) => (
+              <Pressable key={item.id} className="w-[47.5%]">
+                <View className="aspect-square rounded-xl overflow-hidden bg-[#121212] border border-white/5">
+                  <Image source={{ uri: item.image }} className="w-full h-full" resizeMode="cover" />
                 </View>
-              </View>
-            </View>
-          </Pressable>
+                <Text className="text-white font-bold text-[12px] mt-2.5 leading-tight" numberOfLines={2}>
+                  {item.title}
+                </Text>
+                <Text className="text-gray-400 text-[10px] mt-1">{item.subtitle}</Text>
+              </Pressable>
+            ))}
+          </View>
         </View>
 
-        {/* Horizontal Section: Jump back in */}
+        {/* Made For You Section */}
         <View className="mb-8">
-          <Text className="text-xl font-bold text-foreground px-4 mb-4">Jump back in</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 12 }}>
-            {[1, 2, 3, 4].map((i) => (
-              <Pressable key={i} className="mx-2 w-36">
-                <Image
-                  source={{ uri: `https://images.unsplash.com/photo-${1500000000000 + i * 1000000}?w=300&h=300&fit=crop` }}
-                  className="w-36 h-36 rounded-xl border border-border/10"
-                />
-                <Text className="text-foreground font-bold text-xs mt-2" numberOfLines={1}>Playlist {i}</Text>
-                <Text className="text-muted-foreground text-[10px] mt-0.5" numberOfLines={2}>Spotify • 1.2M Followers</Text>
+          <Text className="text-xl font-black text-white px-4 mb-5">Made for You</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16, gap: 12 }}>
+            {MADE_FOR_YOU.map((item) => (
+              <Pressable key={item.id} className="w-[140px]">
+                <View className="w-[140px] h-[140px] rounded-xl overflow-hidden bg-[#121212] border border-white/5">
+                  <Image source={{ uri: item.image }} className="w-full h-full" />
+                </View>
+                <Text className="text-white font-bold text-[12px] mt-2.5 leading-tight" numberOfLines={2}>
+                  {item.title}
+                </Text>
+                <Text className="text-gray-400 text-[10px] mt-1" numberOfLines={2}>
+                  {item.subtitle}
+                </Text>
               </Pressable>
             ))}
           </ScrollView>
         </View>
       </ScrollView>
 
+      {/* Menu Overlay */}
+      {showMenu && (
+        <Pressable 
+          style={StyleSheet.absoluteFill} 
+          onPress={() => setShowMenu(false)}
+          className="z-[100] justify-start items-end pr-4"
+        >
+          <View 
+            style={{ marginTop: insets.top + 50 }}
+            className="bg-[#282828] w-52 rounded-xl shadow-2xl overflow-hidden border border-white/10"
+          >
+            <View className="p-3 border-b border-white/5">
+              <Text className="text-gray-400 text-[10px] font-black uppercase tracking-widest">Menu</Text>
+            </View>
+            <Pressable 
+              onPress={() => { setShowMenu(false); openCreatePlaylist(); }}
+              className="flex-row items-center p-3 active:bg-white/10"
+            >
+              <ListMusic size={18} color="white" />
+              <Text className="text-white text-sm font-bold ml-3">Create Playlist</Text>
+            </Pressable>
+            <View className="p-3 border-t border-white/5">
+              <Text className="text-gray-400 text-[10px] font-black uppercase tracking-widest">Account</Text>
+            </View>
+            <Pressable 
+              onPress={() => { setShowMenu(false); signOut(); }}
+              className="flex-row items-center p-3 active:bg-white/10"
+            >
+              <LogOut size={18} color="white" />
+              <Text className="text-white text-sm font-bold ml-3">Sign out</Text>
+            </Pressable>
+          </View>
+        </Pressable>
+      )}
+
+      {/* Search Overlay */}
+      <SearchOverlay 
+        isOpen={isSearchOpen} 
+        onClose={() => setIsSearchOpen(false)} 
+      />
     </View>
   );
 }

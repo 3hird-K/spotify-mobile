@@ -2,136 +2,120 @@ import React, { useState } from 'react';
 import { View, ScrollView, Pressable, Image, Dimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Text } from '@/components/ui/text';
-import { Search, Plus, ListFilter, Grid2X2, ArrowUpDown, Pin } from 'lucide-react-native';
-import { useAuthStore } from '@/lib/context/auth-store';
-import { useUIStore } from '@/lib/context/ui-store';
-import Animated, { FadeInUp, FadeIn, Layout } from 'react-native-reanimated';
-import { ProfileIcon } from '@/components/profile-icon';
-
-const { width } = Dimensions.get('window');
-const FILTERS = ['Playlists', 'Artists', 'Albums'];
+import { ListFilter, Grid2X2, LayoutGrid, List } from 'lucide-react-native';
+import Animated, { FadeInUp, Layout } from 'react-native-reanimated';
+import { LinearGradient } from 'expo-linear-gradient';
 
 export default function LibraryTab() {
-  const { session } = useAuthStore();
-  const { openProfileDrawer, openCreatePlaylist } = useUIStore();
   const insets = useSafeAreaInsets();
-  const [activeFilter, setActiveFilter] = useState<string | null>(null);
   const [isGridView, setIsGridView] = useState(true);
 
-  const libraryItems = [
-    { id: '1', type: 'playlist', title: 'Liked Songs', subtitle: 'Playlist • 86 songs', image: 'https://misc.scdn.co/happier-than-ever-gradient.png', pinned: true },
-    { id: '2', type: 'playlist', title: 'Deep Focus', subtitle: 'Playlist • Spotify', image: 'https://i.scdn.co/image/ab67706f0000bebbd967e56ba23737ec3093ca53' },
-    { id: '3', type: 'playlist', title: 'Lo-Fi Beats', subtitle: 'Playlist • Lofi Girl', image: 'https://i.scdn.co/image/ab67706c0000bebb422998399587440409095697' },
-    { id: '4', type: 'artist', title: 'Justin Bieber', subtitle: 'Artist', image: 'https://i.scdn.co/image/ab6761610000e5eb8ae7f23342d0912189a87d0c' },
-    { id: '5', type: 'playlist', title: 'Chill Vibes', subtitle: 'Playlist • xMÂDMÂXx', image: 'https://i.scdn.co/image/ab67706c0000bebb9f170f612ca430156d6d45f4' },
-    { id: '6', type: 'artist', title: 'Bruno Mars', subtitle: 'Artist', image: 'https://i.scdn.co/image/ab6761610000e5ebc361d36636735e5898d2489f' },
-    { id: '7', type: 'playlist', title: 'Rap Caviar', subtitle: 'Playlist • Spotify', image: 'https://i.scdn.co/image/ab67706f0000bebb526a09990861183141f2a338' },
-    { id: '8', type: 'artist', title: 'RINI', subtitle: 'Artist', image: 'https://i.scdn.co/image/ab6761610000e5eb03708a54d4850eccebc2319f' },
+  const PLAYLISTS = [
+    { id: 'l1', title: 'Liked Songs', subtitle: '0 liked songs', type: 'liked', color: ['#450af5', '#8e8ee5'] },
   ];
 
+  const RECENTLY_PLAYED: any[] = [];
+
   return (
-    <View className="flex-1 bg-background dark">
-      {/* Sticky Header */}
-      <View 
-        style={{ paddingTop: Math.max(insets.top, 16) }}
-        className="px-4 pb-4 z-50 bg-background/80 backdrop-blur-md"
-      >
-        <View className="flex-row items-center justify-between">
-          <View className="flex-row items-center gap-3">
-            <ProfileIcon size={34} />
-            <Text className="text-foreground text-2xl font-black tracking-tighter">Your Library</Text>
-          </View>
-          <View className="flex-row items-center gap-5">
-            <Search size={26} color="white" />
-            <Pressable onPress={openCreatePlaylist}>
-              <Plus size={28} color="white" />
-            </Pressable>
-          </View>
-        </View>
-
-        {/* Filter Chips */}
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mt-4">
-          <View className="flex-row gap-2">
-            {FILTERS.map((filter) => (
-              <Pressable
-                key={filter}
-                onPress={() => setActiveFilter(activeFilter === filter ? null : filter)}
-                className={`px-4 py-1.5 rounded-full border ${activeFilter === filter ? 'bg-primary border-primary' : 'bg-secondary border-transparent'}`}
-              >
-                <Text className={`text-xs font-bold ${activeFilter === filter ? 'text-primary-foreground' : 'text-foreground'}`}>
-                  {filter}
-                </Text>
-              </Pressable>
-            ))}
-          </View>
-        </ScrollView>
-      </View>
-
+    <View className="flex-1 bg-black dark">
       <ScrollView 
         className="flex-1" 
-        contentContainerStyle={{ paddingBottom: 160 }}
+        contentContainerStyle={{ 
+          paddingTop: insets.top + 20,
+          paddingBottom: 160 
+        }}
         showsVerticalScrollIndicator={false}
       >
-        {/* Sort & Layout Toggle */}
-        <View className="flex-row items-center justify-between px-4 py-2 mb-2">
-          <Pressable className="flex-row items-center gap-2 active:opacity-60">
-            <ArrowUpDown size={14} color="white" />
-            <Text className="text-foreground font-bold text-[11px] uppercase tracking-widest">Recents</Text>
-          </Pressable>
-          <Pressable onPress={() => setIsGridView(!isGridView)} className="active:scale-95 p-1">
-            {isGridView ? <ListFilter size={20} color="white" /> : <Grid2X2 size={20} color="white" />}
+        {/* Header */}
+        <View className="px-4 mb-8 flex-row items-center justify-between">
+          <Text className="text-4xl font-black text-white">Your Library</Text>
+          <Pressable 
+            onPress={() => setIsGridView(!isGridView)}
+            className="w-10 h-10 items-center justify-center bg-[#121212] rounded-full border border-white/5"
+          >
+            {isGridView ? <List size={20} color="white" /> : <LayoutGrid size={20} color="white" />}
           </Pressable>
         </View>
 
-        {/* Library Content */}
-        <View className="px-4">
-          <Animated.View
-            layout={Layout.springify()}
-            className={isGridView ? "flex-row flex-wrap justify-between" : "gap-4"}
+        {/* Playlists & Liked Songs Section */}
+        <View className="mb-10">
+          <Text className="text-xl font-black text-white px-4 mb-5">Playlists & Liked Songs</Text>
+          <ScrollView 
+            horizontal 
+            showsHorizontalScrollIndicator={false} 
+            contentContainerStyle={{ paddingHorizontal: 16, gap: 12 }}
           >
-            {libraryItems.map((item, index) => (
-              <LibraryItem
-                key={item.id}
-                {...item}
-                isGrid={isGridView}
-                index={index}
-              />
+            {PLAYLISTS.map((item: any) => (
+              <Pressable key={item.id} className="w-[140px]">
+                {item.type === 'liked' ? (
+                  <LinearGradient
+                    colors={item.color as any}
+                    className="w-[140px] h-[140px] rounded-2xl p-4 justify-end relative"
+                  >
+                     <View className="absolute top-4 right-4 opacity-40">
+                        <HeartIcon size={32} />
+                     </View>
+                     <Text className="text-white font-black text-lg">Liked Songs</Text>
+                     <Text className="text-white/70 text-[10px] mt-1">{item.subtitle}</Text>
+                  </LinearGradient>
+                ) : (
+                  <View className="w-[140px] bg-[#121212] rounded-2xl p-3 border border-white/5">
+                    <Image source={{ uri: item.image }} className="w-full aspect-square rounded-xl" />
+                    <Text className="text-white font-black text-[12px] mt-3" numberOfLines={1}>{item.title}</Text>
+                    <Text className="text-gray-500 text-[10px] mt-1">{item.subtitle}</Text>
+                  </View>
+                )}
+              </Pressable>
             ))}
-          </Animated.View>
+          </ScrollView>
         </View>
+
+        {/* Recently Played Section */}
+        {RECENTLY_PLAYED.length > 0 && (
+          <View className="px-4">
+            <Text className="text-xl font-black text-white mb-5">Recently Played</Text>
+            <Animated.View 
+              layout={Layout.springify()}
+              className={isGridView ? "flex-row flex-wrap justify-between gap-y-6" : "gap-y-5"}
+            >
+              {RECENTLY_PLAYED.map((item, index) => (
+                <Pressable 
+                  key={item.id} 
+                  className={isGridView ? "w-[47.5%]" : "flex-row items-center gap-4"}
+                >
+                  <View className={isGridView ? "w-full aspect-square rounded-xl overflow-hidden bg-[#121212] border border-white/5" : "w-16 h-16 rounded-lg overflow-hidden bg-[#121212] border border-white/5"}>
+                    <Image source={{ uri: item.image }} className="w-full h-full" resizeMode="cover" />
+                  </View>
+                  <View className={isGridView ? "mt-3" : "flex-1"}>
+                    <Text className="text-white font-black text-[12px] leading-tight" numberOfLines={2}>
+                      {item.title}
+                    </Text>
+                    <Text className="text-gray-500 text-[10px] mt-1">{item.subtitle}</Text>
+                  </View>
+                </Pressable>
+              ))}
+            </Animated.View>
+          </View>
+        )}
       </ScrollView>
     </View>
   );
 }
 
-function LibraryItem({ title, subtitle, image, type, pinned, isGrid, index }: any) {
+function HeartIcon({ size }: { size: number }) {
   return (
-    <Animated.View
-      entering={FadeInUp.delay(index * 50).duration(400)}
-      className={isGrid ? "w-[48%] mb-6" : "flex-row items-center gap-3"}
-    >
-      <Pressable className={isGrid ? "w-full" : "flex-row items-center flex-1"}>
-        <View className={isGrid ? "w-full aspect-square mb-2.5" : "w-16 h-16 mr-3"}>
-          <Image
-            source={{ uri: image }}
-            className={`w-full h-full ${type === 'artist' ? 'rounded-full' : 'rounded-lg'}`}
-            resizeMode="cover"
-          />
-        </View>
-        <View className={isGrid ? "px-1" : "flex-1"}>
-          <Text className="text-white font-bold text-sm" numberOfLines={1}>{title}</Text>
-          <View className="flex-row items-center gap-1.5 mt-0.5">
-            {pinned && (
-              <View className="rotate-45">
-                <Pin size={10} color="#1DB954" fill="#1DB954" />
-              </View>
-            )}
-            <Text className="text-[#B3B3B3] text-xs font-medium" numberOfLines={1}>
-              {pinned && "Pinned • "}{subtitle}
-            </Text>
-          </View>
-        </View>
-      </Pressable>
-    </Animated.View>
+    <View style={{ width: size, height: size }} className="items-center justify-center">
+      <View 
+        style={{ 
+          width: size, 
+          height: size, 
+          backgroundColor: 'white', 
+          borderRadius: size/2,
+          opacity: 0.2
+        }} 
+        className="absolute"
+      />
+      <Text style={{ color: 'white', fontSize: size * 0.6 }}>♥</Text>
+    </View>
   );
 }

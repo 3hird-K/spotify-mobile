@@ -9,14 +9,12 @@ import { useColorScheme } from 'nativewind';
 import { useEffect } from 'react';
 import { View } from 'react-native';
 import { useAuthStore } from '@/lib/context/auth-store';
+import { CreatePlaylistModal } from '@/components/create-playlist-modal';
 
 export {
   // Catch any errors thrown by the Layout component.
   ErrorBoundary,
 } from 'expo-router';
-
-import { ProfileDrawer } from '@/components/profile-drawer';
-import { CreatePlaylistModal } from '@/components/create-playlist-modal';
 
 export default function RootLayout() {
   const { colorScheme: nativeColorScheme, setColorScheme } = useColorScheme();
@@ -47,7 +45,6 @@ export default function RootLayout() {
           <Stack.Screen name="(auth)" options={{ headerShown: false }} />
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         </Stack>
-        <ProfileDrawer />
         <CreatePlaylistModal />
         <PortalHost name="root" />
       </View>

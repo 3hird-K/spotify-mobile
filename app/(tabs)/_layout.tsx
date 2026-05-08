@@ -1,5 +1,5 @@
 import { Tabs } from 'expo-router';
-import { Home, Search, Library, Plus, House, HomeIcon } from 'lucide-react-native';
+import { Home, Users, Music, Library, ListMusic } from 'lucide-react-native';
 import { useColorScheme } from 'nativewind';
 import * as React from 'react';
 import { Platform, StyleSheet, View } from 'react-native';
@@ -70,7 +70,7 @@ export default function TabLayout() {
           options={{
             title: 'Home',
             tabBarIcon: ({ color, focused }) => (
-              <HomeIcon color={color} size={24} strokeWidth={focused ? 2.7 : 2.2} />
+              <Home color={color} size={24} strokeWidth={focused ? 2.7 : 2.2} />
             ),
           }}
         />
@@ -78,19 +78,9 @@ export default function TabLayout() {
         <Tabs.Screen
           name="search"
           options={{
-            title: 'Search',
+            title: 'Following',
             tabBarIcon: ({ color, focused }) => (
-              <Search color={color} size={24} strokeWidth={focused ? 2.7 : 2.2} />
-            ),
-          }}
-        />
-
-        <Tabs.Screen
-          name="library"
-          options={{
-            title: 'Your Library',
-            tabBarIcon: ({ color, focused }) => (
-              <Library color={color} size={24} strokeWidth={focused ? 2.7 : 2.2} />
+              <Users color={color} size={24} strokeWidth={focused ? 2.7 : 2.2} />
             ),
           }}
         />
@@ -104,12 +94,23 @@ export default function TabLayout() {
             },
           }}
           options={{
-            title: 'Create',
+            title: 'Playlist',
             tabBarIcon: ({ color, focused }) => (
-              <Plus color={color} size={28} strokeWidth={focused ? 3 : 2.4} />
+              <ListMusic color={color} size={24} strokeWidth={focused ? 2.7 : 2.2} />
             ),
           }}
         />
+
+        <Tabs.Screen
+          name="library"
+          options={{
+            title: 'Library',
+            tabBarIcon: ({ color, focused }) => (
+              <Library color={color} size={24} strokeWidth={focused ? 2.7 : 2.2} />
+            ),
+          }}
+        />
+
 
         <Tabs.Screen
           name="profile"

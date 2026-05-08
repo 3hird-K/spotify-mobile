@@ -1,42 +1,59 @@
 import React from 'react';
-import { View, Image, Pressable } from 'react-native'; // Removed Platform
+import { View, Image, Pressable } from 'react-native';
 import { Text } from '@/components/ui/text';
-import { Heart, Play, Speaker } from 'lucide-react-native';
+import { Heart, Play, SkipBack, SkipForward, Pause, Speaker, Monitor } from 'lucide-react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 
 export function MiniPlayer() {
+  const [isPlaying, setIsPlaying] = React.useState(false);
+  const [isLiked, setIsLiked] = React.useState(false);
+
   return (
-    <Animated.View
+    <Animated.View 
       entering={FadeInUp.delay(500)}
-      className="w-full h-[56px] bg-[#282828] rounded-lg overflow-hidden flex-row items-center px-3 shadow-2xl z-50"
+      className="w-full h-[60px] bg-[#282828] rounded-lg overflow-hidden flex-row items-center px-3 shadow-2xl relative"
     >
       {/* Album Art */}
-      <Image
-        source={{ uri: 'https://i.scdn.co/image/ab67616d0000b273b75411767355097722744883' }}
+      <Image 
+        source={{ uri: 'https://i.ytimg.com/vi/f8Wn_h-mR1U/maxresdefault.jpg' }} 
         className="w-10 h-10 rounded-md"
       />
-
+      
       {/* Info */}
       <View className="flex-1 px-3">
         <Text className="text-white text-[13px] font-bold" numberOfLines={1}>
-          Beauty And A Beat
+          BTS '2.0' Dance Practice
         </Text>
-        <View className="flex-row items-center gap-1">
-          <Speaker size={10} color="#1DB954" fill="#1DB954" />
-          <Text className="text-[#B3B3B3] text-[11px]" numberOfLines={1}>
-            Justin Bieber
+        <View className="flex-row items-center">
+           <View className="w-2.5 h-2.5 bg-[#1DB954] rounded-sm mr-1.5" />
+           <Text className="text-[#B3B3B3] text-[11px]" numberOfLines={1}>
+            Star Music
           </Text>
         </View>
       </View>
 
       {/* Controls */}
-      <View className="flex-row items-center gap-5">
-        <Pressable className="active:scale-90">
-          <Heart size={22} color="#1DB954" fill="#1DB954" />
+      <View className="flex-row items-center gap-4 mr-2">
+        <SkipBack size={22} color="white" fill="white" />
+        <Pressable onPress={() => setIsPlaying(!isPlaying)}>
+          {isPlaying ? (
+            <Pause size={28} color="white" fill="white" />
+          ) : (
+            <Play size={28} color="white" fill="white" />
+          )}
         </Pressable>
-        <Pressable className="active:scale-90">
-          <Play size={24} color="white" fill="white" />
+        <SkipForward size={22} color="white" fill="white" />
+      </View>
+
+      <View className="flex-row items-center gap-4">
+        <Pressable onPress={() => setIsLiked(!isLiked)}>
+          <Heart 
+            size={22} 
+            color={isLiked ? "#1DB954" : "white"} 
+            fill={isLiked ? "#1DB954" : "transparent"} 
+          />
         </Pressable>
+        <Monitor size={22} color="#B3B3B3" />
       </View>
 
       {/* Progress Bar */}
